@@ -1,1 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login • Mission Channels</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <div class="navlinks">
+        <a class="btn" href="/">Mission Channels</a>
+        <a class="btn" href="/browse.html">Browse</a>
+        <a class="btn" href="/submit.html">Post your channel</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Login</h1>
+  <div class="row">
+    <div class="card">
+      <h2>Create account</h2>
+      <label>Email</label><input id="su_email" />
+      <label>Password (8+ chars)</label><input id="su_pass" type="password" />
+      <div style="height:10px"></div>
+      <button class="btn primary" id="signup">Sign up</button>
+      <div class="small" id="su_msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Sign in</h2>
+      <label>Email</label><input id="li_email" />
+      <label>Password</label><input id="li_pass" type="password" />
+      <div style="height:10px"></div>
+      <button class="btn primary" id="login">Login</button>
+      <div class="small" id="li_msg"></div>
+    </div>
+  </div>
+</main>
+
+<script src="/assets/app.js"></script>
+<script>
+APP.qs("#signup").onclick = async () => {
+  APP.qs("#su_msg").textContent = "";
+  try {
+    await APP.api("/api/auth/signup", {
+      method:"POST",
+      body: JSON.stringify({ email: APP.qs("#su_email").value, password:_
 
