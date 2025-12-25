@@ -1,1 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Post your channel • Mission Channels</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <div class="navlinks">
+        <a class="btn" href="/">Mission Channels</a>
+        <a class="btn" href="/browse.html">Browse</a>
+        <a class="btn primary" href="/submit.html">Post your channel</a>
+      </div>
+      <div class="navlinks">
+        <a class="btn" href="/login.html" id="loginLink">Login</a>
+        <a class="btn" href="/logout.html" id="logoutLink" style="display:none;">Logout</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Post your channel</h1>
+  <div class="card">
+    <div class="small" id="status"></div>
+
+    <label>Display name</label>
+    <input id="display_name" placeholder="Ravens Wrestling" />
+
+    <label>YouTube channel URL</label>
+    <input id="youtube_url" placeholder="https://www.youtube.com/@YourChannel" />
+
+    <label>Category</label>
+    <select id="category">
+      <option>High School Sports</option>
+      <option>Faith</option>
+      <option>Education</option>
+      <option>Fitness</option>
+      <option>Local Business</option>
+      <option>Podcast</option>
+      <option>Other</option>
+    </select>
+
+    <label>Location (optional)</label>
+    <input id="location" placeholder="Palatine, IL / School name" />
+
+    <label>Contact (optional)</label>
+    <input id="contact" placeholder="Email, IG handle, website, etc." />
+
+    <label>Mission statement (what you’re trying to accomplish)</label>
+    <textarea id="mission" rows="6" placeholder="Example: We livestream games so families and alumni can watch. We're raising funds for travel, gear, and tournament fees... (40+ chars)"></textarea>
+
+    <div style="height:10px"></div>
+    <button class="btn primary" id="save">Submit</button>
+  </div>
+</main>
+
+<script src="/assets/app.js"></script>
+<script>
+(async () => {
+  const user = await APP.getMe().catch(()=>null);
+  if (!user) { location.href="/login.html"; return; }
+
+  APP.qs("#loginLink").style
 
