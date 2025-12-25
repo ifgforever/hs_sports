@@ -1,1 +1,107 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Browse • Mission Channels</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <div class="navlinks">
+        <a class="btn" href="/">Mission Channels</a>
+        <a class="btn primary" href="/browse.html">Browse</a>
+        <a class="btn" href="/submit.html">Post your channel</a>
+      </div>
+      <div class="navlinks">
+        <a class="btn" href="/login.html" id="loginLink">Login</a>
+        <a class="btn" href="/logout.html" id="logoutLink" style="display:none;">Logout</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Browse missions</h1>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Search</label>
+        <input id="q" placeholder="Search name, mission, keywords…" />
+      </div>
+      <div>
+        <label>Category</label>
+        <select id="category">
+          <option value="">All</option>
+          <option>High School Sports</option>
+          <option>Faith</option>
+          <option>Education</option>
+          <option>Fitness</option>
+          <option>Local Business</option>
+          <option>Podcast</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Location (optional)</label>
+        <input id="location" placeholder="Chicago, Palatine, School name…" />
+      </div>
+      <div style="display:flex; align-items:flex-end; gap:10px;">
+        <button class="btn primary" id="go">Search</button>
+        <button class="btn" id="clear">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:12px"></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<script src="/assets/app.js"></script>
+<script>
+(async () => {
+  const user = await APP.getMe().catch(()=>null);
+  if (user) { APP.qs("#loginLink").style.display="none"; APP.qs("#logoutLink").style.display="inline-block"; }
+
+  async function load(){
+    const q = APP.qs("#q").value.trim();
+    const category = APP.qs("#category").value.trim();
+    const location = APP.qs("#location").value.trim();
+
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (category) params.set("category", category);
+    if (location) params.set("location", location);
+
+    const data = await APP.api("/api/channels?"+params.toString(), { method:"GET" });
+    const grid = APP.qs("#grid");
+    grid.innerHTML = (data.channels || []).map(ch => `
+      <div class="card">
+        <div class="small">${APP.escapeHtml(ch.category)} ${ch.location ? "• "+APP.escapeHtml(ch.location) : ""}</div>
+        <h2>${APP.escapeHtml(ch.display_name)}</h2>
+        <div class="small">${APP.escapeHtml(ch.mission).slice(0,170)}${ch.mission.length>170?"…":""}</div>
+        <div style="margin-top:10px; display:flex; gap:10px;">
+          <a class="btn primary" href="/channel.html?id=${encodeURIComponent(ch.id)}">View mission</a>
+          <a class="btn" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank" rel="noopener">YouTube</a>
+        </div>
+      </div>
+    `).join("") || `<div class="card"><div class="small">No channels found.</div></div>`;
+  }
+
+  APP.qs("#go").onclick = load;
+  APP.qs("#clear").onclick = () => {
+    APP.qs("#q").value=""; APP.qs("#category").value=""; APP.qs("#location").value="";
+    load();
+  };
+
+  load();
+})();
+</script>
+</body>
+</html>
 
