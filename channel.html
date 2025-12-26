@@ -16,6 +16,7 @@
         <a class="btn" href="/submit.html">Post your channel</a>
       </div>
       <div class="navlinks">
+        <span class="small" id="usernameDisplay" style="display:none; margin-right:8px;"></span>
         <a class="btn" href="/login.html" id="loginLink">Login</a>
         <a class="btn" href="/logout.html" id="logoutLink" style="display:none;">Logout</a>
       </div>
@@ -62,11 +63,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   try {
-    // nav login/logout
-    const userNav = await APP.getMe().catch(()=>null);
-    if (userNav) {
-      const a = document.querySelector("#loginLink"); if (a) a.style.display="none";
-      const b = document.querySelector("#logoutLink"); if (b) b.style.display="inline-block";
+    // Get logged in user ONCE
+    const user = await APP.getMe().catch(() => null);
+    
+    // Update nav based on login state
+    if (user) {
+      document.querySelector("#loginLink").style.display = "none";
+      document.querySelector("#logoutLink").style.display = "inline-block";
+      // Show username
+      const usernameDisplay = document.querySelector("#usernameDisplay");
+      usernameDisplay.textContent = "Hi, " + user.username;
+      usernameDisplay.style.display = "inline-block";
     }
 
     const url = new URL(location.href);
@@ -92,8 +99,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="small" id="ownerMsg" style="margin-top:8px;"></div>
     `;
 
-    // If logged in, show comment UI and maybe delete button
-    const user = await APP.getMe().catch(() => null);
+    // Handle comment UI and delete button
     const hint = document.querySelector("#commentHint");
     const box = document.querySelector("#commentBox");
 
@@ -104,9 +110,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       hint.textContent = "Be respectful. Support the mission.";
       box.style.display = "block";
 
-      // Owner check: backend returns channel.user_id, /api/auth/me returns user.id (same as sub)
-      // In your earlier /api/auth/me response, you had user.id available.
-    const isOwner = user && ch.user_id && user.sub === ch.user_id;
+      // Owner check: user.sub is the user ID from JWT, ch.user_id is from the channel record
+      const isOwner = ch.user_id && user.sub === ch.user_id;
+      
+      console.log("Debug - user.sub:", user.sub, "ch.user_id:", ch.user_id, "isOwner:", isOwner);
 
       if (isOwner) {
         const del = document.querySelector("#deleteBtn");
