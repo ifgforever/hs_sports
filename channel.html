@@ -39,7 +39,6 @@
       <textarea id="body" rows="4" placeholder="Say something supportive or helpful…"></textarea>
       <div style="height:10px"></div>
       <button class="btn primary" id="post" type="button">Post comment</button>
-      <div class="small" id="commentErr" style="margin-top:8px; white-space:pre-wrap;"></div>
     </div>
 
     <hr>
@@ -51,9 +50,6 @@
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
   const top = document.querySelector("#top");
-  const hint = document.querySelector("#commentHint");
-  const box  = document.querySelector("#commentBox");
-  const cErr = document.querySelector("#commentErr");
 
   const showError = (msg) => {
     top.innerHTML = `
@@ -65,32 +61,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
   };
 
-  const setNav = (user) => {
-    const a = document.querySelector("#loginLink");
-    const b = document.querySelector("#logoutLink");
-    if (!a || !b) return;
-    if (user) { a.style.display = "none"; b.style.display = "inline-block"; }
-    else { a.style.display = "inline-block"; b.style.display = "none"; }
-  };
-
   try {
-    // 1) Parse ID
+    // Nav state
+    const userNav = await APP.getMe().catch(()=>null);
+    if (userNav) {
+      const a = document.querySelector("#loginLink"); if (a) a.style.display="none";
+      const b = document.querySelector("#logoutLink"); if (b) b.style.display="inline-block";
+    }
+
     const url = new URL(location.href);
     const id = url.searchParams.get("id");
     if (!id) return showError("Missing channel id (URL should look like /channel.html?id=xxxx).");
 
-    // 2) Load user once
-    const me = await APP.getMe().catch(() => null);
-    setNav(me);
-
-    // 3) Load channel
     const chRes = await APP.api("/api/channels/" + encodeURIComponent(id), { method: "GET" });
     const ch = chRes.channel;
 
     document.title = ch.display_name + " • Mission Channels";
 
-    // 4) Render channel header (and optionally delete)
-    const isOwner = me && ch.user_id && me.id === ch.user_id;
+    // Logged-in user (for delete button)
+    const user = await APP.getMe().catch(() => null);
+    const isOwner = user && ch.user_id && user.id === ch.user_id;
 
     top.innerHTML = `
       <div class="small">${APP.escapeHtml(ch.category)}${ch.location ? " • " + APP.escapeHtml(ch.location) : ""}</div>
@@ -100,28 +90,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
         <a class="btn primary" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank" rel="noopener">Visit on YouTube</a>
         <a class="btn" href="/browse.html">Back to browse</a>
-        ${isOwner ? `<button class="btn" id="deletePost" type="button">Delete post</button>` : ``}
+        ${isOwner ? `<button class="btn" id="deleteBtn" type="button">Delete post</button>` : ``}
       </div>
 
-      ${isOwner ? `<div class="small" style="margin-top:8px;">Owner tools: You can delete your post.</div>` : ``}
+      ${isOwner ? `<div class="small" style="margin-top:8px;">Only you can see “Delete post”.</div>` : ``}
     `;
 
-    if (isOwner) {
-      document.querySelector("#deletePost").addEventListener("click", async () => {
-        const ok = confirm("Delete this post? This will remove the channel and its comments.");
-        if (!ok) return;
-        try {
-          await APP.api("/api/channels/" + encodeURIComponent(id), { method: "DELETE" });
-          alert("Deleted.");
-          location.href = "/browse.html";
-        } catch (e) {
-          alert(e.message || "Delete failed.");
-        }
-      });
-    }
+    // Comment UI
+    const hint = document.querySelector("#commentHint");
+    const box = document.querySelector("#commentBox");
 
-    // 5) Comments UI
-    if (!me) {
+    if (!user) {
       hint.innerHTML = `Login to comment. <a href="/login.html">Go to login</a>`;
       box.style.display = "none";
     } else {
@@ -142,24 +121,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     document.querySelector("#post").addEventListener("click", async () => {
-      cErr.textContent = "";
       const body = document.querySelector("#body").value.trim();
       if (!body) return;
-
-      try {
-        await APP.api("/api/comments", {
-          method: "POST",
-          body: JSON.stringify({ channel_id: id, body })
-        });
-        document.querySelector("#body").value = "";
-        loadComments();
-      } catch (e) {
-        cErr.textContent = e.message || "Comment failed.";
-      }
+      await APP.api("/api/comments", {
+        method: "POST",
+        body: JSON.stringify({ channel_id: id, body })
+      });
+      document.querySelector("#body").value = "";
+      loadComments();
     });
 
-    loadComments();
+    // ✅ Delete button handler (owner only)
+    const del = document.querySelector("#deleteBtn");
+    if (del) {
+      del.addEventListener("click", async () => {
+        const ok = confirm("Delete this post? This will remove it from Browse.");
+        if (!ok) return;
 
+        try {
+          await APP.api("/api/channels/" + encodeURIComponent(id), { method: "DELETE" });
+          alert("Deleted.");
+          location.href = "/browse.html";
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+    }
+
+    loadComments();
   } catch (e) {
     console.error(e);
     showError(e.message || String(e));
