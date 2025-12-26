@@ -16,7 +16,7 @@ export async function onRequestPost({ request, env }) {
     return bad("Password must be at least 6 characters.");
   }
 
-  // check if username exists
+  // Check if username exists
   const existing = await env.DB
     .prepare("SELECT id FROM users WHERE username=?")
     .bind(username)
@@ -33,5 +33,11 @@ export async function onRequestPost({ request, env }) {
      VALUES (?, ?, ?, ?)`
   ).bind(id, username, hash, now).run();
 
-  return json({ ok: true });
+  // NEW: Auto-login by setting cookie
+  const token = await signJWT(env, { sub: id, username });
+
+  return json(
+    { ok: true, user: { id, username } },
+    { headers: setAuthCookie(token) }
+  );
 }
