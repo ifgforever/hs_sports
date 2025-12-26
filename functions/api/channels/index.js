@@ -2,15 +2,29 @@ import { json, bad, uid, requireUser } from "../_util.js";
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
-  const q = (url.searchParams.get("q") || "").trim().toLowerCase();
+
+  const qRaw = (url.searchParams.get("q") || "").trim();
+  const q = qRaw.toLowerCase();
+
   const category = (url.searchParams.get("category") || "").trim();
   const location = (url.searchParams.get("location") || "").trim();
 
   let where = "WHERE status='active'";
   const binds = [];
 
-  if (category) { where += " AND category=?"; binds.push(category); }
-  if (location) { where += " AND (location LIKE ? )"; binds.push(`%${location}%`); }
+  // ✅ Category: case-insensitive + trimmed match
+  if (category) {
+    where += " AND LOWER(TRIM(category)) = LOWER(TRIM(?))";
+    binds.push(category);
+  }
+
+  // ✅ Location: only match when non-null, and trim the input
+  if (location) {
+    where += " AND (location IS NOT NULL AND location LIKE ?)";
+    binds.push(`%${location}%`);
+  }
+
+  // ✅ Search: case-insensitive against name/mission/url
   if (q) {
     where += " AND (LOWER(display_name) LIKE ? OR LOWER(mission) LIKE ? OR LOWER(youtube_url) LIKE ?)";
     binds.push(`%${q}%`, `%${q}%`, `%${q}%`);
@@ -36,11 +50,11 @@ export async function onRequestPost(context) {
   if (!body) return bad("Invalid JSON");
 
   const display_name = String(body.display_name || "").trim();
-  const youtube_url = String(body.youtube_url || "").trim();
-  const mission = String(body.mission || "").trim();
-  const category = String(body.category || "").trim();
-  const location = String(body.location || "").trim();
-  const contact = String(body.contact || "").trim();
+  const youtube_url  = String(body.youtube_url || "").trim();
+  const mission      = String(body.mission || "").trim();
+  const category     = String(body.category || "").trim();
+  const location     = String(body.location || "").trim();
+  const contact      = String(body.contact || "").trim();
 
   if (!display_name) return bad("Display name is required.");
   if (!youtube_url || !youtube_url.includes("youtube.com")) return bad("Enter a valid YouTube channel URL.");
@@ -54,8 +68,18 @@ export async function onRequestPost(context) {
     `INSERT INTO channels
      (id, user_id, display_name, youtube_url, mission, category, location, contact, status, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`
-  ).bind(id, user.sub, display_name, youtube_url, mission, category, location || null, contact || null, now, now).run();
+  ).bind(
+    id,
+    user.sub,
+    display_name,
+    youtube_url,
+    mission,
+    category,
+    location || null,
+    contact || null,
+    now,
+    now
+  ).run();
 
   return json({ ok: true, id });
 }
-
