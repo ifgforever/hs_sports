@@ -21,22 +21,33 @@
 
 <main class="wrap">
   <h1>Login</h1>
+
   <div class="row">
     <div class="card">
       <h2>Create account</h2>
-      <label>Email</label><input id="su_email" />
-      <label>Password (8+ chars)</label><input id="su_pass" type="password" />
+
+      <label>Email</label>
+      <input id="su_email" type="email" autocomplete="email" />
+
+      <label>Password (8+ chars)</label>
+      <input id="su_pass" type="password" autocomplete="new-password" />
+
       <div style="height:10px"></div>
-      <button class="btn primary" id="signup">Sign up</button>
+      <button class="btn primary" id="signup" type="button">Sign up</button>
       <div class="small" id="su_msg"></div>
     </div>
 
     <div class="card">
       <h2>Sign in</h2>
-      <label>Email</label><input id="li_email" />
-      <label>Password</label><input id="li_pass" type="password" />
+
+      <label>Email</label>
+      <input id="li_email" type="email" autocomplete="email" />
+
+      <label>Password</label>
+      <input id="li_pass" type="password" autocomplete="current-password" />
+
       <div style="height:10px"></div>
-      <button class="btn primary" id="login">Login</button>
+      <button class="btn primary" id="login" type="button">Login</button>
       <div class="small" id="li_msg"></div>
     </div>
   </div>
@@ -44,10 +55,66 @@
 
 <script src="/assets/app.js"></script>
 <script>
-APP.qs("#signup").onclick = async () => {
-  APP.qs("#su_msg").textContent = "";
-  try {
-    await APP.api("/api/auth/signup", {
-      method:"POST",
-      body: JSON.stringify({ email: APP.qs("#su_email").value, password:_
+document.addEventListener("DOMContentLoaded", () => {
+  const suEmail = document.querySelector("#su_email");
+  const suPass  = document.querySelector("#su_pass");
+  const suBtn   = document.querySelector("#signup");
+  const suMsg   = document.querySelector("#su_msg");
 
+  const liEmail = document.querySelector("#li_email");
+  const liPass  = document.querySelector("#li_pass");
+  const liBtn   = document.querySelector("#login");
+  const liMsg   = document.querySelector("#li_msg");
+
+  function setMsg(el, text) {
+    el.textContent = text || "";
+  }
+
+  async function doSignup() {
+    setMsg(suMsg, "");
+    const email = (suEmail.value || "").trim();
+    const password = (suPass.value || "");
+
+    if (!email.includes("@")) return setMsg(suMsg, "Enter a valid email.");
+    if (password.length < 8) return setMsg(suMsg, "Password must be at least 8 characters.");
+
+    try {
+      await APP.api("/api/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      });
+      location.href = "/submit.html";
+    } catch (e) {
+      setMsg(suMsg, e.message || "Signup failed.");
+    }
+  }
+
+  async function doLogin() {
+    setMsg(liMsg, "");
+    const email = (liEmail.value || "").trim();
+    const password = (liPass.value || "");
+
+    if (!email || !password) return setMsg(liMsg, "Enter email and password.");
+
+    try {
+      await APP.api("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      });
+      location.href = "/submit.html";
+    } catch (e) {
+      setMsg(liMsg, e.message || "Login failed.");
+    }
+  }
+
+  // Button clicks
+  suBtn.addEventListener("click", doSignup);
+  liBtn.addEventListener("click", doLogin);
+
+  // Press Enter to submit
+  suPass.addEventListener("keydown", (e) => { if (e.key === "Enter") doSignup(); });
+  liPass.addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
+});
+</script>
+</body>
+</html>
