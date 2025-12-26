@@ -21,7 +21,7 @@ export async function onRequestDelete(context) {
   const user = await requireUser(context);
   if (!user) return bad("Login required.", 401);
 
-  // Only the owner of the post can delete it
+  // Only the owner can delete their post
   const row = await env.DB.prepare(
     `SELECT id, user_id FROM channels WHERE id = ? LIMIT 1`
   ).bind(id).first();
@@ -29,12 +29,14 @@ export async function onRequestDelete(context) {
   if (!row) return bad("Not found", 404);
   if (row.user_id !== user.sub) return bad("Not allowed", 403);
 
-  // Soft delete (recommended): keeps DB clean + avoids breaking references
+  // Soft delete the channel (keeps history / avoids breaking links)
   await env.DB.prepare(
-    `UPDATE channels SET status='deleted', updated_at=? WHERE id=?`
+    `UPDATE channels
+     SET status='deleted', updated_at=?
+     WHERE id=?`
   ).bind(new Date().toISOString(), id).run();
 
-  // Optional: also delete comments for that channel
+  // Optional: delete comments for that channel (keeps UI clean)
   await env.DB.prepare(
     `DELETE FROM comments WHERE channel_id=?`
   ).bind(id).run();
