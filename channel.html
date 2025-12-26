@@ -11,7 +11,7 @@
   <div class="wrap">
     <nav>
       <div class="navlinks">
-        <a class="btn" href="/index.html">Mission Channels</a>
+        <a class="btn primary" href="/index.html">Mission Channels</a>
         <a class="btn" href="/browse.html">Browse</a>
         <a class="btn" href="/submit.html">Post your channel</a>
       </div>
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   try {
-    // Nav state
+    // nav login/logout
     const userNav = await APP.getMe().catch(()=>null);
     if (userNav) {
       const a = document.querySelector("#loginLink"); if (a) a.style.display="none";
@@ -78,10 +78,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.title = ch.display_name + " • Mission Channels";
 
-    // Logged-in user (for delete button)
-    const user = await APP.getMe().catch(() => null);
-    const isOwner = user && ch.user_id && user.id === ch.user_id;
-
     top.innerHTML = `
       <div class="small">${APP.escapeHtml(ch.category)}${ch.location ? " • " + APP.escapeHtml(ch.location) : ""}</div>
       <h1 style="margin:8px 0 6px;">${APP.escapeHtml(ch.display_name)}</h1>
@@ -90,13 +86,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
         <a class="btn primary" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank" rel="noopener">Visit on YouTube</a>
         <a class="btn" href="/browse.html">Back to browse</a>
-        ${isOwner ? `<button class="btn" id="deleteBtn" type="button">Delete post</button>` : ``}
+        <button class="btn" id="deleteBtn" type="button" style="display:none;">Delete post</button>
       </div>
 
-      ${isOwner ? `<div class="small" style="margin-top:8px;">Only you can see “Delete post”.</div>` : ``}
+      <div class="small" id="ownerMsg" style="margin-top:8px;"></div>
     `;
 
-    // Comment UI
+    // If logged in, show comment UI and maybe delete button
+    const user = await APP.getMe().catch(() => null);
     const hint = document.querySelector("#commentHint");
     const box = document.querySelector("#commentBox");
 
@@ -106,6 +103,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       hint.textContent = "Be respectful. Support the mission.";
       box.style.display = "block";
+
+      // Owner check: backend returns channel.user_id, /api/auth/me returns user.id (same as sub)
+      // In your earlier /api/auth/me response, you had user.id available.
+      const isOwner = (ch.user_id && user.id && ch.user_id === user.id);
+
+      if (isOwner) {
+        const del = document.querySelector("#deleteBtn");
+        del.style.display = "inline-block";
+        document.querySelector("#ownerMsg").textContent = "You own this post. You can delete it.";
+
+        del.addEventListener("click", async () => {
+          if (!confirm("Delete this post? This cannot be undone.")) return;
+          try {
+            await APP.api("/api/channels/" + encodeURIComponent(id), { method: "DELETE" });
+            location.href = "/browse.html";
+          } catch (e) {
+            alert(e.message || "Delete failed");
+          }
+        });
+      }
     }
 
     async function loadComments() {
@@ -130,23 +147,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.querySelector("#body").value = "";
       loadComments();
     });
-
-    // ✅ Delete button handler (owner only)
-    const del = document.querySelector("#deleteBtn");
-    if (del) {
-      del.addEventListener("click", async () => {
-        const ok = confirm("Delete this post? This will remove it from Browse.");
-        if (!ok) return;
-
-        try {
-          await APP.api("/api/channels/" + encodeURIComponent(id), { method: "DELETE" });
-          alert("Deleted.");
-          location.href = "/browse.html";
-        } catch (e) {
-          alert(e.message);
-        }
-      });
-    }
 
     loadComments();
   } catch (e) {
