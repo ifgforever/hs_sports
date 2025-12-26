@@ -1,6 +1,5 @@
 import { json, bad, requireUser } from "../_util.js";
 
-// GET /api/channels/:id
 export async function onRequestGet({ params, env }) {
   const id = params.id;
 
@@ -14,7 +13,6 @@ export async function onRequestGet({ params, env }) {
   return json({ ok: true, channel: row });
 }
 
-// PUT /api/channels/:id (edit your own post)
 export async function onRequestPut(context) {
   const { request, env, params } = context;
 
@@ -27,8 +25,7 @@ export async function onRequestPut(context) {
     "SELECT id, user_id, status FROM channels WHERE id=?"
   ).bind(id).first();
 
-  if (!existing) return bad("Not found.", 404);
-  if (existing.status !== "active") return bad("Not found.", 404);
+  if (!existing || existing.status !== "active") return bad("Not found.", 404);
   if (existing.user_id !== user.sub) return bad("Forbidden.", 403);
 
   const body = await request.json().catch(() => null);
@@ -50,7 +47,13 @@ export async function onRequestPut(context) {
 
   await env.DB.prepare(
     `UPDATE channels SET
-      display_name=?, youtube_url=?, mission=?, category=?, location=?, contact=?, updated_at=?
+      display_name=?,
+      youtube_url=?,
+      mission=?,
+      category=?,
+      location=?,
+      contact=?,
+      updated_at=?
      WHERE id=?`
   ).bind(
     display_name,
@@ -66,7 +69,6 @@ export async function onRequestPut(context) {
   return json({ ok: true });
 }
 
-// DELETE /api/channels/:id (delete your own post, or admin)
 export async function onRequestDelete(context) {
   const { env, params } = context;
 
@@ -80,15 +82,25 @@ export async function onRequestDelete(context) {
   ).bind(id).first();
 
   if (!existing) return bad("Not found.", 404);
-  if (existing.status !== "active") return bad("Not found.", 404);
+  if (existing.status !== "active") return bad("Already removed.", 400);
 
+  // Owner can delete their own post
   const isOwner = existing.user_id === user.sub;
-  const isAdmin = (env.ADMIN_EMAIL && String(env.ADMIN_EMAIL).toLowerCase() === String(user.email || "").toLowerCase());
+
+  // Optional admin override:
+  // Add env var ADMIN_USERNAMES like: "lancejlee,coachmike,admin1"
+  const adminList = String(env.ADMIN_USERNAMES || "")
+    .split(",")
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean);
+
+  const isAdmin = adminList.includes(String(user.username || user.email || "").trim().toLowerCase());
 
   if (!isOwner && !isAdmin) return bad("Forbidden.", 403);
 
-  // Soft delete (recommended): keeps records, hides from browse
   const now = new Date().toISOString();
+
+  // Soft delete
   await env.DB.prepare(
     "UPDATE channels SET status='deleted', updated_at=? WHERE id=?"
   ).bind(now, id).run();
