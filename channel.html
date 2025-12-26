@@ -1,41 +1,74 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Channel • Mission Channels</title>
-  <link rel="stylesheet" href="/assets/style.css">
-</head>
-<body>
-<header>
-  <div class="wrap">
-    <nav>
-      <div class="navlinks">
-        <a class="btn" href="/">Mission Channels</a>
-        <a class="btn" href="/browse.html">Browse</a>
-        <a class="btn" href="/submit.html">Post your channel</a>
+<script src="/assets/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    if (APP.initNav) await APP.initNav();
+
+    const url = new URL(location.href);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+      document.querySelector("#top").innerHTML =
+        `<div class="small">Missing channel ID. <a href="/browse.html">Back to browse</a></div>`;
+      return;
+    }
+
+    const res = await APP.api("/api/channels/" + encodeURIComponent(id), { method: "GET" });
+    const ch = res.channel;
+
+    document.title = ch.display_name + " • Mission Channels";
+
+    document.querySelector("#top").innerHTML = `
+      <div class="small">${APP.escapeHtml(ch.category)}${ch.location ? " • " + APP.escapeHtml(ch.location) : ""}</div>
+      <h1 style="margin:8px 0 6px;">${APP.escapeHtml(ch.display_name)}</h1>
+      <p class="small" style="font-size:14px; line-height:1.5;">${APP.escapeHtml(ch.mission)}</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <a class="btn primary" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank">Visit on YouTube</a>
+        <a class="btn" href="/browse.html">Back to browse</a>
       </div>
-      <div class="navlinks">
-        <a class="btn" href="/login.html" id="loginLink">Login</a>
-        <a class="btn" href="/logout.html" id="logoutLink" style="display:none;">Logout</a>
-      </div>
-    </nav>
-  </div>
-</header>
+    `;
 
-<main class="wrap">
-  <div class="card" id="top">
-    <div class="small">Loading…</div>
-  </div>
+    const user = await APP.getMe().catch(() => null);
+    const hint = document.querySelector("#commentHint");
+    const box = document.querySelector("#commentBox");
 
-  <div style="height:12px"></div>
+    if (!user) {
+      hint.innerHTML = `Login to comment. <a href="/login.html">Go to login</a>`;
+      box.style.display = "none";
+    } else {
+      hint.textContent = "Be respectful. Support the mission.";
+      box.style.display = "block";
+    }
 
-  <div class="card">
-    <h2>Comments</h2>
-    <div class="small" id="commentHint"></div>
-    <div style="height:8px"></div>
+    async function loadComments() {
+      const data = await APP.api("/api/comments?channel_id=" + encodeURIComponent(id));
+      const el = document.querySelector("#comments");
+      el.innerHTML = (data.comments || []).map(c => `
+        <div class="card" style="margin-bottom:10px;">
+          <div class="small">${c.author_email || "Anonymous"} • ${new Date(c.created_at).toLocaleString()}</div>
+          <div style="margin-top:8px;">${APP.escapeHtml(c.body)}</div>
+        </div>
+      `).join("") || `<div class="small">No comments yet.</div>`;
+    }
 
-    <div id="commentBox" style="display:none;">
-      <textarea id="body" rows="4" placeholder="Say something supportive or helpful…"></textarea>
-      <div style="height:10px"></div>
-      <button class="btn pr
+    document.querySelector("#post")?.addEventListener("click", async () => {
+      const body = document.querySelector("#body").value.trim();
+      if (!body) return;
+      await APP.api("/api/comments", {
+        method: "POST",
+        body: JSON.stringify({ channel_id: id, body })
+      });
+      document.querySelector("#body").value = "";
+      loadComments();
+    });
+
+    loadComments();
+
+  } catch (err) {
+    console.error(err);
+    document.querySelector("#top").innerHTML =
+      `<div class="small">Error loading channel: ${err.message}</div>
+       <div style="margin-top:10px"><a class="btn" href="/browse.html">Back to browse</a></div>`;
+  }
+});
+</script>
