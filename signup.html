@@ -1,44 +1,20 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Missions</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign Up • Mission Channels</title>
+  <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
-
-<h1>Missions</h1>
-<div id="user"></div>
-<div id="list"></div>
-
-<script src="/app.js"></script>
+<main class="wrap" style="padding:40px 16px;">
+  <div class="card">
+    <h2>Redirecting…</h2>
+    <div class="small">Taking you to the login page.</div>
+  </div>
+</main>
 <script>
-(async () => {
-  let user;
-  try {
-    user = await APP.getMe();
-  } catch {
-    location.href = "/login.html";
-    return;
-  }
-
-  document.querySelector("#user").textContent =
-    "Logged in as @" + user.username;
-
-  const res = await APP.api("/api/channels");
-  const list = document.querySelector("#list");
-
-  res.channels.forEach(c => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <h3>${c.display_name}</h3>
-      <p>${c.mission}</p>
-      <small>${c.category || ""} ${c.location || ""}</small>
-      <hr>
-    `;
-    list.appendChild(div);
-  });
-})();
+  location.href = "/login.html";
 </script>
-
 </body>
 </html>
