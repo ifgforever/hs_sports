@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       box.style.display = "block";
 
       // Owner check: user.sub is the user ID from JWT, ch.user_id is from the channel record
-      const isOwner = ch.user_id && user.sub === ch.user_id;
+     const isOwner = ch.user_id && user.id === ch.user_id;
       
       console.log("Debug - user.sub:", user.sub, "ch.user_id:", ch.user_id, "isOwner:", isOwner);
 
