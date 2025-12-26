@@ -1,7 +1,8 @@
-import { json, requireUser } from "../_util.js";
+import { json } from "../_util.js";
+import { requireUser } from "../_util.js";
 
-export async function onRequestGet(context) {
-  const user = await requireUser(context);
-  if (!user) return json({ ok: false }, 401);
-  return json({ ok: true, user });
+export async function onRequestGet({ request, env }) {
+  const user = await requireUser({ request, env });
+  if (!user) return json({ ok: true, user: null });
+  return json({ ok: true, user: { id: user.sub, username: user.username } });
 }
