@@ -39,6 +39,7 @@
       <textarea id="body" rows="4" placeholder="Say something supportive or helpful…"></textarea>
       <div style="height:10px"></div>
       <button class="btn primary" id="post" type="button">Post comment</button>
+      <div class="small" id="commentErr" style="margin-top:8px; white-space:pre-wrap;"></div>
     </div>
 
     <hr>
@@ -50,6 +51,9 @@
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
   const top = document.querySelector("#top");
+  const hint = document.querySelector("#commentHint");
+  const box  = document.querySelector("#commentBox");
+  const cErr = document.querySelector("#commentErr");
 
   const showError = (msg) => {
     top.innerHTML = `
@@ -61,38 +65,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
   };
 
-  try {
-    // nav (works even if you haven't added initNav)
-    const userNav = await APP.getMe().catch(()=>null);
-    if (userNav) {
-      const a = document.querySelector("#loginLink"); if (a) a.style.display="none";
-      const b = document.querySelector("#logoutLink"); if (b) b.style.display="inline-block";
-    }
+  const setNav = (user) => {
+    const a = document.querySelector("#loginLink");
+    const b = document.querySelector("#logoutLink");
+    if (!a || !b) return;
+    if (user) { a.style.display = "none"; b.style.display = "inline-block"; }
+    else { a.style.display = "inline-block"; b.style.display = "none"; }
+  };
 
+  try {
+    // 1) Parse ID
     const url = new URL(location.href);
     const id = url.searchParams.get("id");
     if (!id) return showError("Missing channel id (URL should look like /channel.html?id=xxxx).");
 
+    // 2) Load user once
+    const me = await APP.getMe().catch(() => null);
+    setNav(me);
+
+    // 3) Load channel
     const chRes = await APP.api("/api/channels/" + encodeURIComponent(id), { method: "GET" });
     const ch = chRes.channel;
 
     document.title = ch.display_name + " • Mission Channels";
 
+    // 4) Render channel header (and optionally delete)
+    const isOwner = me && ch.user_id && me.id === ch.user_id;
+
     top.innerHTML = `
       <div class="small">${APP.escapeHtml(ch.category)}${ch.location ? " • " + APP.escapeHtml(ch.location) : ""}</div>
       <h1 style="margin:8px 0 6px;">${APP.escapeHtml(ch.display_name)}</h1>
       <p class="small" style="font-size:14px; line-height:1.5;">${APP.escapeHtml(ch.mission)}</p>
+
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
         <a class="btn primary" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank" rel="noopener">Visit on YouTube</a>
         <a class="btn" href="/browse.html">Back to browse</a>
+        ${isOwner ? `<button class="btn" id="deletePost" type="button">Delete post</button>` : ``}
       </div>
+
+      ${isOwner ? `<div class="small" style="margin-top:8px;">Owner tools: You can delete your post.</div>` : ``}
     `;
 
-    const user = await APP.getMe().catch(() => null);
-    const hint = document.querySelector("#commentHint");
-    const box = document.querySelector("#commentBox");
+    if (isOwner) {
+      document.querySelector("#deletePost").addEventListener("click", async () => {
+        const ok = confirm("Delete this post? This will remove the channel and its comments.");
+        if (!ok) return;
+        try {
+          await APP.api("/api/channels/" + encodeURIComponent(id), { method: "DELETE" });
+          alert("Deleted.");
+          location.href = "/browse.html";
+        } catch (e) {
+          alert(e.message || "Delete failed.");
+        }
+      });
+    }
 
-    if (!user) {
+    // 5) Comments UI
+    if (!me) {
       hint.innerHTML = `Login to comment. <a href="/login.html">Go to login</a>`;
       box.style.display = "none";
     } else {
@@ -113,17 +142,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     document.querySelector("#post").addEventListener("click", async () => {
+      cErr.textContent = "";
       const body = document.querySelector("#body").value.trim();
       if (!body) return;
-      await APP.api("/api/comments", {
-        method: "POST",
-        body: JSON.stringify({ channel_id: id, body })
-      });
-      document.querySelector("#body").value = "";
-      loadComments();
+
+      try {
+        await APP.api("/api/comments", {
+          method: "POST",
+          body: JSON.stringify({ channel_id: id, body })
+        });
+        document.querySelector("#body").value = "";
+        loadComments();
+      } catch (e) {
+        cErr.textContent = e.message || "Comment failed.";
+      }
     });
 
     loadComments();
+
   } catch (e) {
     console.error(e);
     showError(e.message || String(e));
