@@ -1,82 +1,174 @@
-2025-12-26T06:26:44.344528Z	Cloning repository...
-2025-12-26T06:26:44.883497Z	From https://github.com/ifgforever/hs_sports
-2025-12-26T06:26:44.883926Z	 * branch            151cc53041896c7019665b664fda090bf3f91076 -> FETCH_HEAD
-2025-12-26T06:26:44.884095Z	
-2025-12-26T06:26:44.907902Z	HEAD is now at 151cc53 Fix missing newline at end of channel.html
-2025-12-26T06:26:44.908386Z	
-2025-12-26T06:26:44.97578Z	
-2025-12-26T06:26:44.976258Z	Using v2 root directory strategy
-2025-12-26T06:26:44.997705Z	Success: Finished cloning repository files
-2025-12-26T06:26:46.877724Z	Checking for configuration in a Wrangler configuration file (BETA)
-2025-12-26T06:26:46.878361Z	
-2025-12-26T06:26:47.978194Z	No wrangler.toml file found. Continuing.
-2025-12-26T06:26:47.978597Z	No build command specified. Skipping build step.
-2025-12-26T06:26:47.979194Z	Found Functions directory at /functions. Uploading.
-2025-12-26T06:26:47.98507Z	 ⛅️ wrangler 3.101.0
-2025-12-26T06:26:47.985324Z	-------------------
-2025-12-26T06:26:49.06226Z	[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 3 errors:[0m
-2025-12-26T06:26:49.063117Z	
-2025-12-26T06:26:49.063235Z	  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "@tsndr/cloudflare-worker-jwt"[0m
-2025-12-26T06:26:49.063817Z	  
-2025-12-26T06:26:49.063975Z	      api/_util.js:3:16:
-2025-12-26T06:26:49.064096Z	  [37m      3 │ import jwt from [32m"@tsndr/cloudflare-worker-jwt"[37m;
-2025-12-26T06:26:49.064214Z	          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-2025-12-26T06:26:49.064675Z	  
-2025-12-26T06:26:49.064834Z	    You can mark the path "@tsndr/cloudflare-worker-jwt" as external to exclude it from the bundle, which will remove this error.
-2025-12-26T06:26:49.06502Z	  
-2025-12-26T06:26:49.06511Z	  
-2025-12-26T06:26:49.065176Z	  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "bcryptjs"[0m
-2025-12-26T06:26:49.065238Z	  
-2025-12-26T06:26:49.065298Z	      api/auth/login.js:2:19:
-2025-12-26T06:26:49.065361Z	  [37m      2 │ import bcrypt from [32m"bcryptjs"[37m;
-2025-12-26T06:26:49.065431Z	          ╵                    [32m~~~~~~~~~~[0m
-2025-12-26T06:26:49.065493Z	  
-2025-12-26T06:26:49.065554Z	    You can mark the path "bcryptjs" as external to exclude it from the bundle, which will remove this error.
-2025-12-26T06:26:49.065609Z	  
-2025-12-26T06:26:49.065661Z	  
-2025-12-26T06:26:49.065729Z	  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "bcryptjs"[0m
-2025-12-26T06:26:49.065804Z	  
-2025-12-26T06:26:49.065863Z	      api/auth/signup.js:2:19:
-2025-12-26T06:26:49.06592Z	  [37m      2 │ import bcrypt from [32m"bcryptjs"[37m;
-2025-12-26T06:26:49.066022Z	          ╵                    [32m~~~~~~~~~~[0m
-2025-12-26T06:26:49.066098Z	  
-2025-12-26T06:26:49.066154Z	    You can mark the path "bcryptjs" as external to exclude it from the bundle, which will remove this error.
-2025-12-26T06:26:49.066262Z	  
-2025-12-26T06:26:49.066334Z	  
-2025-12-26T06:26:49.066395Z	
-2025-12-26T06:26:49.066459Z	
-2025-12-26T06:26:49.066521Z	
-2025-12-26T06:26:49.068401Z	[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 3 errors:[0m
-2025-12-26T06:26:49.068548Z	
-2025-12-26T06:26:49.068712Z	  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "@tsndr/cloudflare-worker-jwt"[0m
-2025-12-26T06:26:49.068881Z	  
-2025-12-26T06:26:49.068998Z	      api/_util.js:3:16:
-2025-12-26T06:26:49.069079Z	  [37m      3 │ import jwt from [32m"@tsndr/cloudflare-worker-jwt"[37m;
-2025-12-26T06:26:49.069143Z	          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-2025-12-26T06:26:49.069202Z	  
-2025-12-26T06:26:49.069268Z	    You can mark the path "@tsndr/cloudflare-worker-jwt" as external to exclude it from the bundle, which will remove this error.
-2025-12-26T06:26:49.069331Z	  
-2025-12-26T06:26:49.069391Z	  
-2025-12-26T06:26:49.069465Z	  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "bcryptjs"[0m
-2025-12-26T06:26:49.069522Z	  
-2025-12-26T06:26:49.069578Z	      api/auth/login.js:2:19:
-2025-12-26T06:26:49.06964Z	  [37m      2 │ import bcrypt from [32m"bcryptjs"[37m;
-2025-12-26T06:26:49.069703Z	          ╵                    [32m~~~~~~~~~~[0m
-2025-12-26T06:26:49.069765Z	  
-2025-12-26T06:26:49.069822Z	    You can mark the path "bcryptjs" as external to exclude it from the bundle, which will remove this error.
-2025-12-26T06:26:49.069882Z	  
-2025-12-26T06:26:49.069974Z	  
-2025-12-26T06:26:49.070056Z	  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "bcryptjs"[0m
-2025-12-26T06:26:49.070115Z	  
-2025-12-26T06:26:49.070179Z	      api/auth/signup.js:2:19:
-2025-12-26T06:26:49.070245Z	  [37m      2 │ import bcrypt from [32m"bcryptjs"[37m;
-2025-12-26T06:26:49.070299Z	          ╵                    [32m~~~~~~~~~~[0m
-2025-12-26T06:26:49.070409Z	  
-2025-12-26T06:26:49.070575Z	    You can mark the path "bcryptjs" as external to exclude it from the bundle, which will remove this error.
-2025-12-26T06:26:49.070693Z	  
-2025-12-26T06:26:49.070789Z	  
-2025-12-26T06:26:49.070888Z	
-2025-12-26T06:26:49.070956Z	
-2025-12-26T06:26:49.093237Z	🪵  Logs were written to "/root/.config/.wrangler/logs/wrangler-2025-12-26_06-26-48_576.log"
-2025-12-26T06:26:49.103838Z	Failed building Pages Functions.
-2025-12-26T06:26:50.375135Z	Failed: generating Pages Functions failed. Check the logs above for more information. If this continues for an unknown reason, contact support: https://cfl.re/3WgEyrH
+// functions/api/_util.js
+const enc = new TextEncoder();
+
+export function json(data, init = {}) {
+  const headers = new Headers(init.headers || {});
+  if (!headers.has("content-type")) headers.set("content-type", "application/json; charset=utf-8");
+  return new Response(JSON.stringify(data), { ...init, headers });
+}
+
+export function bad(message, status = 400) {
+  return json({ ok: false, error: message }, { status });
+}
+
+export function uid() {
+  return crypto.randomUUID();
+}
+
+export function requireEnv(env, key) {
+  const v = env[key];
+  if (!v || typeof v !== "string") throw new Error(`Missing env var: ${key}`);
+  return v;
+}
+
+/** -------- Password hashing (WebCrypto PBKDF2) -------- **/
+
+function b64u(bytes) {
+  // base64url
+  let str = btoa(String.fromCharCode(...bytes));
+  return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function unb64u(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = s.length % 4 ? 4 - (s.length % 4) : 0;
+  s += "=".repeat(pad);
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+export async function hashPassword(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations: 120000, hash: "SHA-256" },
+    key,
+    256
+  );
+  const hash = new Uint8Array(bits);
+  // store: pbkdf2$iterations$salt$hash
+  return `pbkdf2$120000$${b64u(salt)}$${b64u(hash)}`;
+}
+
+export async function verifyPassword(password, stored) {
+  try {
+    const parts = String(stored || "").split("$");
+    if (parts.length !== 4) return false;
+    const [alg, iterStr, saltB64, hashB64] = parts;
+    if (alg !== "pbkdf2") return false;
+    const iterations = parseInt(iterStr, 10);
+    if (!iterations || iterations < 50000) return false;
+
+    const salt = unb64u(saltB64);
+    const expected = unb64u(hashB64);
+
+    const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+      key,
+      256
+    );
+    const actual = new Uint8Array(bits);
+
+    // constant-time compare
+    if (actual.length !== expected.length) return false;
+    let diff = 0;
+    for (let i = 0; i < actual.length; i++) diff |= actual[i] ^ expected[i];
+    return diff === 0;
+  } catch {
+    return false;
+  }
+}
+
+/** -------- Minimal JWT (HS256) using WebCrypto -------- **/
+
+function utf8ToBytes(s) {
+  return enc.encode(s);
+}
+
+async function hmacSha256(secret, data) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    utf8ToBytes(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, utf8ToBytes(data));
+  return new Uint8Array(sig);
+}
+
+export async function signJWT(env, payload, ttlSeconds = 60 * 60 * 24 * 14) {
+  const secret = requireEnv(env, "JWT_SECRET");
+  const header = { alg: "HS256", typ: "JWT" };
+  const now = Math.floor(Date.now() / 1000);
+  const fullPayload = { ...payload, iat: now, exp: now + ttlSeconds };
+
+  const h = b64u(utf8ToBytes(JSON.stringify(header)));
+  const p = b64u(utf8ToBytes(JSON.stringify(fullPayload)));
+  const data = `${h}.${p}`;
+
+  const sig = await hmacSha256(secret, data);
+  const s = b64u(sig);
+  return `${data}.${s}`;
+}
+
+export async function verifyJWT(env, token) {
+  const secret = requireEnv(env, "JWT_SECRET");
+  const t = String(token || "");
+  const parts = t.split(".");
+  if (parts.length !== 3) return null;
+  const [h, p, s] = parts;
+  const data = `${h}.${p}`;
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    utf8ToBytes(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"]
+  );
+
+  const ok = await crypto.subtle.verify("HMAC", key, unb64u(s), utf8ToBytes(data));
+  if (!ok) return null;
+
+  const payloadJson = new TextDecoder().decode(unb64u(p));
+  const payload = JSON.parse(payloadJson);
+
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.exp && now > payload.exp) return null;
+
+  return payload;
+}
+
+/** -------- Cookie helpers -------- **/
+
+export function setAuthCookie(env, token) {
+  const origin = (env.APP_ORIGIN || "").trim();
+  const secure = origin.startsWith("https://");
+  // SameSite=Lax works well for typical same-site navigation on Pages
+  const cookie =
+    `auth=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 14}` +
+    (secure ? "; Secure" : "");
+  return { "Set-Cookie": cookie };
+}
+
+export function clearAuthCookie(env) {
+  const origin = (env.APP_ORIGIN || "").trim();
+  const secure = origin.startsWith("https://");
+  const cookie =
+    `auth=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0` +
+    (secure ? "; Secure" : "");
+  return { "Set-Cookie": cookie };
+}
+
+export async function requireUser({ request, env }) {
+  const cookie = request.headers.get("Cookie") || "";
+  const m = cookie.match(/(?:^|;\s*)auth=([^;]+)/);
+  if (!m) return null;
+  const token = decodeURIComponent(m[1]);
+  const payload = await verifyJWT(env, token);
+  return payload || null;
+}
