@@ -61,6 +61,8 @@
 
 <script src="/assets/app.js"></script>
 <script>
+  <script>APP.initNav();</script>
+
 (async () => {
   const user = await APP.getMe().catch(()=>null);
   if (!user) { location.href="/login.html"; return; }
