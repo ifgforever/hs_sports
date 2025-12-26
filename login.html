@@ -1,99 +1,37 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login • Mission Channels</title>
-  <link rel="stylesheet" href="/assets/style.css">
+  <meta charset="utf-8">
+  <title>Login</title>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
-    <nav>
-      <div class="navlinks">
-        <a class="btn" href="/">Mission Channels</a>
-        <a class="btn" href="/browse.html">Browse</a>
-        <a class="btn" href="/submit.html">Post your channel</a>
-      </div>
-    </nav>
-  </div>
-</header>
+<h2>Login</h2>
 
-<main class="wrap">
-  <h1>Login</h1>
+<input id="username" placeholder="Username"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
 
-  <div class="row">
-    <div class="card">
-      <h2>Create account</h2>
+<button id="login">Login</button>
+<p id="msg"></p>
 
-      <label>Email</label>
-      <input id="su_email" type="email" />
-
-      <label>Password (8+ characters)</label>
-      <input id="su_pass" type="password" />
-
-      <div style="height:10px"></div>
-      <button class="btn primary" id="signup">Sign up</button>
-      <div class="small" id="su_msg"></div>
-    </div>
-
-    <div class="card">
-      <h2>Sign in</h2>
-
-      <label>Email</label>
-      <input id="li_email" type="email" />
-
-      <label>Password</label>
-      <input id="li_pass" type="password" />
-
-      <div style="height:10px"></div>
-      <button class="btn primary" id="login">Login</button>
-      <div class="small" id="li_msg"></div>
-    </div>
-  </div>
-</main>
-
-<script src="/assets/app.js"></script>
+<script src="/app.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  const signupBtn = APP.qs("#signup");
-  const loginBtn  = APP.qs("#login");
-
-  signupBtn.addEventListener("click", async () => {
-    APP.qs("#su_msg").textContent = "";
-    try {
-      await APP.api("/api/auth/signup", {
-        method: "POST",
-        body: JSON.stringify({
-          email: APP.qs("#su_email").value.trim(),
-          password: APP.qs("#su_pass").value
-        })
-      });
-      location.href = "/submit.html";
-    } catch (e) {
-      APP.qs("#su_msg").textContent = e.message;
-    }
-  });
-
-  loginBtn.addEventListener("click", async () => {
-    APP.qs("#li_msg").textContent = "";
-    try {
-      await APP.api("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-          email: APP.qs("#li_email").value.trim(),
-          password: APP.qs("#li_pass").value
-        })
-      });
-      location.href = "/submit.html";
-    } catch (e) {
-      APP.qs("#li_msg").textContent = e.message;
-    }
-  });
-
-});
+document.querySelector("#login").onclick = async () => {
+  document.querySelector("#msg").textContent = "";
+  try {
+    const res = await APP.api("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value
+      })
+    });
+    APP.token = res.token;
+    location.href = "/missions.html";
+  } catch (e) {
+    msg.textContent = e.message;
+  }
+};
 </script>
 
 </body>
