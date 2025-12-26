@@ -1,4 +1,4 @@
-import { json, bad, uid } from "../../_util.js";
+import { json, bad, uid, signJWT, setAuthCookie } from "../_util.js";
 import bcrypt from "bcryptjs";
 
 export async function onRequestPost({ request, env }) {
