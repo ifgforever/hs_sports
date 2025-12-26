@@ -6,7 +6,7 @@ export async function onRequestGet({ request, env }) {
   if (!channel_id) return bad("channel_id required.");
 
   const rows = (await env.DB.prepare(
-    `SELECT c.id, c.body, c.created_at, u.email AS author_email
+   `SELECT c.id, c.body, c.created_at, u.username AS author_email
      FROM comments c
      LEFT JOIN users u ON u.id = c.user_id
      WHERE c.channel_id=? AND c.status='visible'
