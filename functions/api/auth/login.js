@@ -22,10 +22,12 @@ export async function onRequestPost({ request, env }) {
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) return bad("Invalid username or password", 401);
 
-  const token = await signJWT({
-    sub: user.id,
-    username
-  });
+  // Fix 1: Pass env as first argument
+  const token = await signJWT(env, { sub: user.id, username });
 
-  return json({ ok: true, token });
+  // Fix 2: Set cookie instead of returning token in body
+  return json(
+    { ok: true, user: { id: user.id, username } },
+    { headers: setAuthCookie(token) }
+  );
 }
