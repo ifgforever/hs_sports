@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Owner check: backend returns channel.user_id, /api/auth/me returns user.id (same as sub)
       // In your earlier /api/auth/me response, you had user.id available.
-     const isOwner = me && ch.user_id && me.sub === ch.user_id;
+    const isOwner = me && ch.user_id && me.sub === ch.user_id;
 
       if (isOwner) {
         const del = document.querySelector("#deleteBtn");
