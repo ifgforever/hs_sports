@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
+
 <header>
   <div class="wrap">
     <nav>
@@ -24,19 +25,21 @@
 </header>
 
 <main class="wrap">
-  <h1>Post your channel</h1>
+  <h1>Post your YouTube channel</h1>
 
   <div class="card">
-    <div class="small" id="status"></div>
-
-    <label>Display name</label>
-    <input id="display_name" placeholder="Ravens Wrestling" />
+    <label>Channel display name</label>
+    <input id="display_name" />
 
     <label>YouTube channel URL</label>
-    <input id="youtube_url" placeholder="https://www.youtube.com/@YourChannel" />
+    <input id="youtube_url" placeholder="https://www.youtube.com/@yourchannel" />
+
+    <label>Mission (what are you trying to accomplish?)</label>
+    <textarea id="mission" rows="6"></textarea>
 
     <label>Category</label>
     <select id="category">
+      <option value="">Select one</option>
       <option>High School Sports</option>
       <option>Faith</option>
       <option>Education</option>
@@ -47,61 +50,54 @@
     </select>
 
     <label>Location (optional)</label>
-    <input id="location" placeholder="Palatine, IL / School name" />
+    <input id="location" />
 
-    <label>Contact (optional)</label>
-    <input id="contact" placeholder="Email, IG handle, website, etc." />
+    <label>Contact info (optional)</label>
+    <input id="contact" />
 
-    <label>Mission statement (40+ chars)</label>
-    <textarea id="mission" rows="6" placeholder="What are you trying to accomplish?"></textarea>
-
-    <div style="height:10px"></div>
-    <button class="btn primary" id="save" type="button">Submit</button>
-
-    <div style="height:10px"></div>
-    <div class="small" id="err" style="white-space:pre-wrap;"></div>
+    <div style="height:12px"></div>
+    <button class="btn primary" id="submit">Submit channel</button>
+    <div class="small" id="msg"></div>
   </div>
 </main>
 
 <script src="/assets/app.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
-  await APP.initNav();
+(async () => {
 
-  const me = await APP.getMe().catch(() => null);
-  if (!me) { location.href = "/login.html"; return; }
+  const user = await APP.getMe().catch(() => null);
+  if (!user) {
+    location.href = "/login.html";
+    return;
+  }
 
-  const status = document.querySelector("#status");
-  const err = document.querySelector("#err");
+  APP.qs("#loginLink").style.display = "none";
+  APP.qs("#logoutLink").style.display = "inline-block";
 
-  status.textContent = "You’re logged in. Post your channel and mission.";
-  err.textContent = "";
-
-  document.querySelector("#save").addEventListener("click", async () => {
-    err.textContent = "";
-
-    const payload = {
-      display_name: document.querySelector("#display_name").value.trim(),
-      youtube_url: document.querySelector("#youtube_url").value.trim(),
-      category: document.querySelector("#category").value.trim(),
-      location: document.querySelector("#location").value.trim(),
-      contact: document.querySelector("#contact").value.trim(),
-      mission: document.querySelector("#mission").value.trim(),
-    };
-
-    // Friendly client-side checks (matches backend rules)
-    if (!payload.display_name) return err.textContent = "Display name is required.";
-    if (!payload.youtube_url.includes("youtube.com")) return err.textContent = "Use a full YouTube URL (must include youtube.com).";
-    if (payload.mission.length < 40) return err.textContent = "Mission must be at least 40 characters.";
+  APP.qs("#submit").addEventListener("click", async () => {
+    APP.qs("#msg").textContent = "";
 
     try {
-      const res = await APP.api("/api/channels", { method: "POST", body: JSON.stringify(payload) });
-      location.href = "/channel.html?id=" + encodeURIComponent(res.id);
+      await APP.api("/api/channels", {
+        method: "POST",
+        body: JSON.stringify({
+          display_name: APP.qs("#display_name").value.trim(),
+          youtube_url: APP.qs("#youtube_url").value.trim(),
+          mission: APP.qs("#mission").value.trim(),
+          category: APP.qs("#category").value.trim(),
+          location: APP.qs("#location").value.trim(),
+          contact: APP.qs("#contact").value.trim()
+        })
+      });
+
+      location.href = "/browse.html";
     } catch (e) {
-      err.textContent = e.message || "Submit failed.";
+      APP.qs("#msg").textContent = e.message;
     }
   });
-});
+
+})();
 </script>
+
 </body>
 </html>
