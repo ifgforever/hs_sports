@@ -24,7 +24,9 @@
 </header>
 
 <main class="wrap">
-  <div class="card" id="top"></div>
+  <div class="card" id="top">
+    <div class="small">Loading…</div>
+  </div>
 
   <div style="height:12px"></div>
 
@@ -36,65 +38,4 @@
     <div id="commentBox" style="display:none;">
       <textarea id="body" rows="4" placeholder="Say something supportive or helpful…"></textarea>
       <div style="height:10px"></div>
-      <button class="btn primary" id="post">Post comment</button>
-    </div>
-
-    <hr>
-    <div id="comments"></div>
-  </div>
-</main>
-
-<script src="/assets/app.js"></script>
-<script>
-  <script>APP.initNav();</script>
-
-(async () => {
-  const url = new URL(location.href);
-  const id = url.searchParams.get("id");
-  if (!id) { location.href="/browse.html"; return; }
-
-  const user = await APP.getMe().catch(()=>null);
-  if (user) { APP.qs("#loginLink").style.display="none"; APP.qs("#logoutLink").style.display="inline-block"; }
-
-  const ch = (await APP.api("/api/channels/"+encodeURIComponent(id), { method:"GET" })).channel;
-  document.title = ch.display_name + " • Mission Channels";
-
-  APP.qs("#top").innerHTML = `
-    <div class="small">${APP.escapeHtml(ch.category)} ${ch.location ? "• "+APP.escapeHtml(ch.location) : ""}</div>
-    <h1 style="margin:8px 0 6px;">${APP.escapeHtml(ch.display_name)}</h1>
-    <p class="small" style="font-size:14px; line-height:1.5;">${APP.escapeHtml(ch.mission)}</p>
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-      <a class="btn primary" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank" rel="noopener">Visit on YouTube</a>
-      <a class="btn" href="/browse.html">Back to browse</a>
-    </div>
-  `;
-
-  if (!user) {
-    APP.qs("#commentHint").innerHTML = `Login to comment. <a href="/login.html">Go to login</a>`;
-  } else {
-    APP.qs("#commentHint").textContent = "Be respectful. Support the mission.";
-    APP.qs("#commentBox").style.display = "block";
-  }
-
-  async function loadComments(){
-    const data = await APP.api("/api/comments?channel_id="+encodeURIComponent(id), { method:"GET" });
-    const el = APP.qs("#comments");
-    el.innerHTML = (data.comments || []).map(c => `
-      <div class="card" style="margin-bottom:10px;">
-        <div class="small">${c.author_email ? APP.escapeHtml(c.author_email) : "Anonymous"} • ${new Date(c.created_at).toLocaleString()}</div>
-        <div style="margin-top:8px;">${APP.escapeHtml(c.body)}</div>
-      </div>
-    `).join("") || `<div class="small">No comments yet. Be the first to encourage them.</div>`;
-  }
-
-  APP.qs("#post")?.addEventListener("click", async () => {
-    const body = APP.qs("#body").value.trim();
-    if (!body) return;
-    try {
-      await APP.api("/api/comments", { method:"POST", body: JSON.stringify({ channel_id:id, body }) });
-      APP.qs("#body").value="";
-      loadComments();
-    } catch (e) {
-      alert(e.message);
-    }
-
+      <button class="btn pr
