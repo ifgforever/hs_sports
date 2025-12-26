@@ -1,29 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mission • Mission Channels</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <div class="navlinks">
+        <a class="btn" href="/index.html">Mission Channels</a>
+        <a class="btn" href="/browse.html">Browse</a>
+        <a class="btn" href="/submit.html">Post your channel</a>
+      </div>
+      <div class="navlinks">
+        <a class="btn" href="/login.html" id="loginLink">Login</a>
+        <a class="btn" href="/logout.html" id="logoutLink" style="display:none;">Logout</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="card" id="top">
+    <div class="small">Loading…</div>
+  </div>
+
+  <div style="height:12px"></div>
+
+  <div class="card">
+    <h2>Comments</h2>
+    <div class="small" id="commentHint"></div>
+    <div style="height:8px"></div>
+
+    <div id="commentBox" style="display:none;">
+      <textarea id="body" rows="4" placeholder="Say something supportive or helpful…"></textarea>
+      <div style="height:10px"></div>
+      <button class="btn primary" id="post" type="button">Post comment</button>
+    </div>
+
+    <hr>
+    <div id="comments"></div>
+  </div>
+</main>
+
 <script src="/assets/app.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
+  const top = document.querySelector("#top");
+
+  const showError = (msg) => {
+    top.innerHTML = `
+      <div class="small">Error: ${APP.escapeHtml(msg)}</div>
+      <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="btn" href="/browse.html">Back to browse</a>
+        <a class="btn" href="/submit.html">Post your channel</a>
+      </div>
+    `;
+  };
+
   try {
-    if (APP.initNav) await APP.initNav();
+    // nav (works even if you haven't added initNav)
+    const userNav = await APP.getMe().catch(()=>null);
+    if (userNav) {
+      const a = document.querySelector("#loginLink"); if (a) a.style.display="none";
+      const b = document.querySelector("#logoutLink"); if (b) b.style.display="inline-block";
+    }
 
     const url = new URL(location.href);
     const id = url.searchParams.get("id");
+    if (!id) return showError("Missing channel id (URL should look like /channel.html?id=xxxx).");
 
-    if (!id) {
-      document.querySelector("#top").innerHTML =
-        `<div class="small">Missing channel ID. <a href="/browse.html">Back to browse</a></div>`;
-      return;
-    }
-
-    const res = await APP.api("/api/channels/" + encodeURIComponent(id), { method: "GET" });
-    const ch = res.channel;
+    const chRes = await APP.api("/api/channels/" + encodeURIComponent(id), { method: "GET" });
+    const ch = chRes.channel;
 
     document.title = ch.display_name + " • Mission Channels";
 
-    document.querySelector("#top").innerHTML = `
+    top.innerHTML = `
       <div class="small">${APP.escapeHtml(ch.category)}${ch.location ? " • " + APP.escapeHtml(ch.location) : ""}</div>
       <h1 style="margin:8px 0 6px;">${APP.escapeHtml(ch.display_name)}</h1>
       <p class="small" style="font-size:14px; line-height:1.5;">${APP.escapeHtml(ch.mission)}</p>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-        <a class="btn primary" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank">Visit on YouTube</a>
+        <a class="btn primary" href="${APP.escapeHtml(ch.youtube_url)}" target="_blank" rel="noopener">Visit on YouTube</a>
         <a class="btn" href="/browse.html">Back to browse</a>
       </div>
     `;
@@ -41,17 +101,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function loadComments() {
-      const data = await APP.api("/api/comments?channel_id=" + encodeURIComponent(id));
+      const data = await APP.api("/api/comments?channel_id=" + encodeURIComponent(id), { method: "GET" });
       const el = document.querySelector("#comments");
-      el.innerHTML = (data.comments || []).map(c => `
+      const items = data.comments || [];
+      el.innerHTML = items.map(c => `
         <div class="card" style="margin-bottom:10px;">
-          <div class="small">${c.author_email || "Anonymous"} • ${new Date(c.created_at).toLocaleString()}</div>
+          <div class="small">${c.author_email ? APP.escapeHtml(c.author_email) : "Anonymous"} • ${new Date(c.created_at).toLocaleString()}</div>
           <div style="margin-top:8px;">${APP.escapeHtml(c.body)}</div>
         </div>
       `).join("") || `<div class="small">No comments yet.</div>`;
     }
 
-    document.querySelector("#post")?.addEventListener("click", async () => {
+    document.querySelector("#post").addEventListener("click", async () => {
       const body = document.querySelector("#body").value.trim();
       if (!body) return;
       await APP.api("/api/comments", {
@@ -63,12 +124,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     loadComments();
-
-  } catch (err) {
-    console.error(err);
-    document.querySelector("#top").innerHTML =
-      `<div class="small">Error loading channel: ${err.message}</div>
-       <div style="margin-top:10px"><a class="btn" href="/browse.html">Back to browse</a></div>`;
+  } catch (e) {
+    console.error(e);
+    showError(e.message || String(e));
   }
 });
 </script>
+</body>
+</html>
