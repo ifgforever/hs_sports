@@ -25,6 +25,7 @@
 
 <main class="wrap">
   <h1>Post your channel</h1>
+
   <div class="card">
     <div class="small" id="status"></div>
 
@@ -51,21 +52,56 @@
     <label>Contact (optional)</label>
     <input id="contact" placeholder="Email, IG handle, website, etc." />
 
-    <label>Mission statement (what you’re trying to accomplish)</label>
-    <textarea id="mission" rows="6" placeholder="Example: We livestream games so families and alumni can watch. We're raising funds for travel, gear, and tournament fees... (40+ chars)"></textarea>
+    <label>Mission statement (40+ chars)</label>
+    <textarea id="mission" rows="6" placeholder="What are you trying to accomplish?"></textarea>
 
     <div style="height:10px"></div>
-    <button class="btn primary" id="save">Submit</button>
+    <button class="btn primary" id="save" type="button">Submit</button>
+
+    <div style="height:10px"></div>
+    <div class="small" id="err" style="white-space:pre-wrap;"></div>
   </div>
 </main>
 
 <script src="/assets/app.js"></script>
 <script>
-  <script>APP.initNav();</script>
+document.addEventListener("DOMContentLoaded", async () => {
+  await APP.initNav();
 
-(async () => {
-  const user = await APP.getMe().catch(()=>null);
-  if (!user) { location.href="/login.html"; return; }
+  const me = await APP.getMe().catch(() => null);
+  if (!me) { location.href = "/login.html"; return; }
 
-  APP.qs("#loginLink").style
+  const status = document.querySelector("#status");
+  const err = document.querySelector("#err");
 
+  status.textContent = "You’re logged in. Post your channel and mission.";
+  err.textContent = "";
+
+  document.querySelector("#save").addEventListener("click", async () => {
+    err.textContent = "";
+
+    const payload = {
+      display_name: document.querySelector("#display_name").value.trim(),
+      youtube_url: document.querySelector("#youtube_url").value.trim(),
+      category: document.querySelector("#category").value.trim(),
+      location: document.querySelector("#location").value.trim(),
+      contact: document.querySelector("#contact").value.trim(),
+      mission: document.querySelector("#mission").value.trim(),
+    };
+
+    // Friendly client-side checks (matches backend rules)
+    if (!payload.display_name) return err.textContent = "Display name is required.";
+    if (!payload.youtube_url.includes("youtube.com")) return err.textContent = "Use a full YouTube URL (must include youtube.com).";
+    if (payload.mission.length < 40) return err.textContent = "Mission must be at least 40 characters.";
+
+    try {
+      const res = await APP.api("/api/channels", { method: "POST", body: JSON.stringify(payload) });
+      location.href = "/channel.html?id=" + encodeURIComponent(res.id);
+    } catch (e) {
+      err.textContent = e.message || "Submit failed.";
+    }
+  });
+});
+</script>
+</body>
+</html>
