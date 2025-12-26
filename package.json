@@ -1,0 +1,8 @@
+{
+  "name": "hs-sports",
+  "version": "1.0.0",
+  "dependencies": {
+    "@tsndr/cloudflare-worker-jwt": "^2.5.0",
+    "bcryptjs": "^2.4.3"
+  }
+}
