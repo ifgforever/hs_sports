@@ -14,7 +14,7 @@ export async function onRequestGet({ params, env }) {
   return json({ ok: true, channel: row });
 }
 
-// PUT /api/channels/:id  (edit/update)
+// PUT /api/channels/:id (edit your own post)
 export async function onRequestPut(context) {
   const { request, env, params } = context;
 
@@ -28,18 +28,18 @@ export async function onRequestPut(context) {
   ).bind(id).first();
 
   if (!existing) return bad("Not found.", 404);
-  if (existing.status !== "active") return bad("Channel not found.", 404);
+  if (existing.status !== "active") return bad("Not found.", 404);
   if (existing.user_id !== user.sub) return bad("Forbidden.", 403);
 
   const body = await request.json().catch(() => null);
   if (!body) return bad("Invalid JSON");
 
   const display_name = String(body.display_name || "").trim();
-  const youtube_url = String(body.youtube_url || "").trim();
-  const mission = String(body.mission || "").trim();
-  const category = String(body.category || "").trim();
-  const location = String(body.location || "").trim();
-  const contact = String(body.contact || "").trim();
+  const youtube_url  = String(body.youtube_url || "").trim();
+  const mission      = String(body.mission || "").trim();
+  const category     = String(body.category || "").trim();
+  const location     = String(body.location || "").trim();
+  const contact      = String(body.contact || "").trim();
 
   if (!display_name) return bad("Display name is required.");
   if (!youtube_url || !youtube_url.includes("youtube.com")) return bad("Enter a valid YouTube channel URL.");
@@ -50,13 +50,7 @@ export async function onRequestPut(context) {
 
   await env.DB.prepare(
     `UPDATE channels SET
-      display_name=?,
-      youtube_url=?,
-      mission=?,
-      category=?,
-      location=?,
-      contact=?,
-      updated_at=?
+      display_name=?, youtube_url=?, mission=?, category=?, location=?, contact=?, updated_at=?
      WHERE id=?`
   ).bind(
     display_name,
@@ -72,7 +66,7 @@ export async function onRequestPut(context) {
   return json({ ok: true });
 }
 
-// DELETE /api/channels/:id  (owner-only soft delete)
+// DELETE /api/channels/:id (delete your own post, or admin)
 export async function onRequestDelete(context) {
   const { env, params } = context;
 
@@ -86,9 +80,14 @@ export async function onRequestDelete(context) {
   ).bind(id).first();
 
   if (!existing) return bad("Not found.", 404);
-  if (existing.user_id !== user.sub) return bad("Forbidden.", 403);
+  if (existing.status !== "active") return bad("Not found.", 404);
 
-  // Soft delete: hide everywhere that checks status='active'
+  const isOwner = existing.user_id === user.sub;
+  const isAdmin = (env.ADMIN_EMAIL && String(env.ADMIN_EMAIL).toLowerCase() === String(user.email || "").toLowerCase());
+
+  if (!isOwner && !isAdmin) return bad("Forbidden.", 403);
+
+  // Soft delete (recommended): keeps records, hides from browse
   const now = new Date().toISOString();
   await env.DB.prepare(
     "UPDATE channels SET status='deleted', updated_at=? WHERE id=?"
