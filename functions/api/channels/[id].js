@@ -4,48 +4,40 @@ export async function onRequestGet({ params, env }) {
   const id = params.id;
 
   const row = await env.DB.prepare(
-    `SELECT id, user_id, display_name, youtube_url, mission, category, location, contact, status, created_at, updated_at
-     FROM channels WHERE id=?`
+    `SELECT id, display_name, youtube_url, mission, category, location, contact, status, created_at
+     FROM channels
+     WHERE id = ?`
   ).bind(id).first();
 
-  if (!row || row.status !== "active") return bad("Channel not found.", 404);
+  if (!row) return bad("Not found", 404);
+  if (row.status !== "active") return bad("Not found", 404);
+
   return json({ ok: true, channel: row });
 }
 
-export async function onRequestPut(context) {
-  const { request, env, params } = context;
-  const user = await requireUser(context);
-  if (!user) return bad("Login required.", 401);
-
+// ✅ Soft delete: only the owner OR an admin token can delete
+export async function onRequestDelete(context) {
+  const { request, params, env } = context;
   const id = params.id;
 
-  const existing = await env.DB.prepare("SELECT id, user_id FROM channels WHERE id=?").bind(id).first();
-  if (!existing) return bad("Not found.", 404);
-  if (existing.user_id !== user.sub) return bad("Forbidden.", 403);
+  const user = await requireUser(context);
+  if (!user) return bad("Login required", 401);
 
-  const body = await request.json().catch(() => null);
-  if (!body) return bad("Invalid JSON");
+  const row = await env.DB.prepare(
+    `SELECT id, user_id, status FROM channels WHERE id = ?`
+  ).bind(id).first();
 
-  const display_name = String(body.display_name || "").trim();
-  const youtube_url = String(body.youtube_url || "").trim();
-  const mission = String(body.mission || "").trim();
-  const category = String(body.category || "").trim();
-  const location = String(body.location || "").trim();
-  const contact = String(body.contact || "").trim();
+  if (!row) return bad("Not found", 404);
 
-  if (!display_name) return bad("Display name is required.");
-  if (!youtube_url || !youtube_url.includes("youtube.com")) return bad("Enter a valid YouTube channel URL.");
-  if (mission.length < 40) return bad("Mission should be at least 40 characters.");
-  if (!category) return bad("Category is required.");
+  const adminToken = request.headers.get("x-admin-token") || "";
+  const isAdmin = env.ADMIN_TOKEN && adminToken === env.ADMIN_TOKEN;
+  const isOwner = row.user_id === user.sub;
 
-  const now = new Date().toISOString();
+  if (!isOwner && !isAdmin) return bad("Not allowed", 403);
 
   await env.DB.prepare(
-    `UPDATE channels SET
-      display_name=?, youtube_url=?, mission=?, category=?, location=?, contact=?, updated_at=?
-     WHERE id=?`
-  ).bind(display_name, youtube_url, mission, category, location || null, contact || null, now, id).run();
+    `UPDATE channels SET status='deleted', updated_at=? WHERE id=?`
+  ).bind(new Date().toISOString(), id).run();
 
   return json({ ok: true });
 }
-
